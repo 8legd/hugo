@@ -102,6 +102,47 @@ func NewContent(kind, name string) (err error) {
 		newmetadata["date"] = time.Now().Format(time.RFC3339)
 	}
 
+	// tweaks
+	// TODO think about how these kind of tweaks could be added in a more flexible way to hugo and create feature request / PR
+	// 	maybe add a `special` section/table to the archetype front matter e.g. [mappings] which would contain entries
+	// like menu.main.name = "title" and  menu.main.weight = "$count" (look at similar functionality in hugo elsewhere for naming etc)
+
+
+
+	// Make `title` Title case
+	if str, ok := newmetadata["title"].(string); ok {
+		newmetadata["title"] = strings.Title(str)
+	}
+
+	// Support generation of `name` and `weight` on any menus
+	// `name` defaults to `title`
+	// `weight` defaults to a count of existing content + 1
+	for k := range newmetadata {
+		switch strings.ToLower(k) {
+			case "menu":
+				if menu, ok := newmetadata[k].(map[string]interface {}); ok {
+					for j := range menu {
+						if menumeta, ok := menu[j].(map[string]interface {}); ok {
+							for l := range menumeta {
+								switch strings.ToLower(l) {
+									case "name":
+										menumeta[l] = newmetadata["title"]
+									case "weight":
+										files, err := ioutil.ReadDir(filepath.Dir(filepath.Join(viper.GetString("contentDir"), name)))
+										if err != nil {
+											menumeta[l] = 0
+										} else {
+											menumeta[l] = len(files) + 1
+										}
+								}
+							}
+						}
+					}
+				}
+		}
+	}
+	// /tweaks
+
 	//page.Dir = viper.GetString("sourceDir")
 	page.SetSourceMetaData(newmetadata, parser.FormatToLeadRune(viper.GetString("MetaDataFormat")))
 	page.SetSourceContent(psr.Content())
