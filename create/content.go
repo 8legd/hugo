@@ -112,6 +112,11 @@ func NewContent(kind, name string) (err error) {
 		newmetadata["title"] = strings.Title(str)
 	}
 
+	// Default `linktitle` to `title`
+	if newmetadata["linktitle"] == nil {
+		newmetadata["linktitle"] = newmetadata["title"]
+	}
+
 	// Support generation of `name` and `weight` on any menus
 	// `name` defaults to `title`
 	// `weight` defaults to a count of existing content + 1
