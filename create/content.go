@@ -104,8 +104,8 @@ func NewContent(kind, name string) (err error) {
 
 	// tweaks
 	// TODO think about how these kind of tweaks could be added in a more flexible way to hugo and create feature request / PR
-	// 	maybe add a `special` section/table to the archetype front matter e.g. [mappings] which would contain entries
-	// 	like menu.main.name = "title" and  menu.main.weight = "$count" (look at similar functionality in hugo elsewhere for naming etc)
+	// 	maybe add a `special` section/table to the archetype front matter e.g. [hugo.create] which would contain entries
+	// 	like linktitle = "title" and menu.weight = "count" (look at similar functionality in hugo elsewhere for naming etc)
 
 	// Make `title` Title case
 	if str, ok := newmetadata["title"].(string); ok {
@@ -117,16 +117,12 @@ func NewContent(kind, name string) (err error) {
 		newmetadata["linktitle"] = newmetadata["title"]
 	}
 
-	// Support generation of `name` and `weight` on any menus
-	// `name` defaults to `title`
-	// `weight` defaults to a count of existing content + 1
+	// Support generation of `weight` on menus based on count of existing content files + 1
 	if menu, ok := newmetadata["menu"].(map[string]interface{}); ok {
 		for j := range menu {
 			if menumeta, ok := menu[j].(map[string]interface{}); ok {
 				for l := range menumeta {
 					switch strings.ToLower(l) {
-					case "name":
-						menumeta[l] = newmetadata["title"]
 					case "weight":
 						files, err := ioutil.ReadDir(filepath.Dir(filepath.Join(viper.GetString("contentDir"), name)))
 						if err != nil {
